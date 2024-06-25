@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="css/leaflet.css">
+        <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
+        <link rel="stylesheet" href="css/qgis2web.css">
+        <link rel="stylesheet" href="css/fontawesome-all.min.css">
+        <style>
+        #map {
+            width: 866px;
+            height: 493px;
+        }
+        </style>
+        <title></title>
+    </head>
+    <body>
+        <div id="map">
+        </div>
+        <script src="js/qgis2web_expressions.js"></script>
+        <script src="js/leaflet.js"></script>
+        <script src="js/L.Control.Layers.Tree.min.js"></script>
+        <script src="js/multi-style-layer.js"></script>
+        <script src="js/leaflet.rotatedMarker.js"></script>
+        <script src="js/leaflet.pattern.js"></script>
+        <script src="js/leaflet-hash.js"></script>
+        <script src="js/Autolinker.min.js"></script>
+        <script src="js/rbush.min.js"></script>
+        <script src="js/labelgun.min.js"></script>
+        <script src="js/labels.js"></script>
+        <script src="data/AreaKecamatan_1.js"></script>
+        <script src="data/AreaUrban_2.js"></script>
+        <script src="data/AreaRural_3.js"></script>
+        <script src="data/JalanArteri_4.js"></script>
+        <script src="data/PoinKecamatan_5.js"></script>
+        <script>
+        var highlightLayer;
+        function highlightFeature(e) {
+            highlightLayer = e.target;
+
+            if (e.target.feature.geometry.type === 'LineString' || e.target.feature.geometry.type === 'MultiLineString') {
+              highlightLayer.setStyle({
+                color: '#ffff00',
+              });
+            } else {
+              highlightLayer.setStyle({
+                fillColor: '#ffff00',
+                fillOpacity: 1
+              });
+            }
+        }
+        var map = L.map('map', {
+            zoomControl:false, maxZoom:28, minZoom:1
+        }).fitBounds([[-7.945017974137464,112.43514532474973],[-7.503451122824525,113.21019704465962]]);
+        var hash = new L.Hash(map);
+        map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
+        var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
+        // remove popup's row if "visible-with-data"
+        function removeEmptyRowsFromPopupContent(content, feature) {
+         var tempDiv = document.createElement('div');
+         tempDiv.innerHTML = content;
+         var rows = tempDiv.querySelectorAll('tr');
+         for (var i = 0; i < rows.length; i++) {
+             var td = rows[i].querySelector('td.visible-with-data');
+             var key = td ? td.id : '';
+             if (td && td.classList.contains('visible-with-data') && feature.properties[key] == null) {
+                 rows[i].parentNode.removeChild(rows[i]);
+             }
+         }
+         return tempDiv.innerHTML;
+        }
+        // add class to format popup if it contains media
+		function addClassToPopupIfMedia(content, popup) {
+			var tempDiv = document.createElement('div');
+			tempDiv.innerHTML = content;
+			if (tempDiv.querySelector('td img')) {
+				popup._contentNode.classList.add('media');
+					// Delay to force the redraw
+					setTimeout(function() {
+						popup.update();
+					}, 10);
+			} else {
+				popup._contentNode.classList.remove('media');
+			}
+		}
+        var zoomControl = L.control.zoom({
+            position: 'topleft'
+        }).addTo(map);
+        var bounds_group = new L.featureGroup([]);
+        function setBounds() {
+        }
+        map.createPane('pane_GoogleSatellite_0');
+        map.getPane('pane_GoogleSatellite_0').style.zIndex = 400;
+        var layer_GoogleSatellite_0 = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+            pane: 'pane_GoogleSatellite_0',
+            opacity: 1.0,
+            attribution: '<a href="https://www.google.at/permissions/geoguidelines/attr-guide.html">Map data ©2015 Google</a>',
+            minZoom: 1,
+            maxZoom: 28,
+            minNativeZoom: 0,
+            maxNativeZoom: 20
+        });
+        layer_GoogleSatellite_0;
+        map.addLayer(layer_GoogleSatellite_0);
+        function pop_AreaKecamatan_1(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (var i in e.target._eventParents) {
+                        if (typeof e.target._eventParents[i].resetStyle === 'function') {
+                            e.target._eventParents[i].resetStyle(e.target);
+                        }
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Kecamatan</th>\
+                        <td>' + (feature.properties['Kecamatan'] !== null ? autolinker.link(feature.properties['Kecamatan'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_AreaKecamatan_1_0() {
+            return {
+                pane: 'pane_AreaKecamatan_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,243,211,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_AreaKecamatan_1');
+        map.getPane('pane_AreaKecamatan_1').style.zIndex = 401;
+        map.getPane('pane_AreaKecamatan_1').style['mix-blend-mode'] = 'normal';
+        var layer_AreaKecamatan_1 = new L.geoJson(json_AreaKecamatan_1, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_AreaKecamatan_1',
+            layerName: 'layer_AreaKecamatan_1',
+            pane: 'pane_AreaKecamatan_1',
+            onEachFeature: pop_AreaKecamatan_1,
+            style: style_AreaKecamatan_1_0,
+        });
+        bounds_group.addLayer(layer_AreaKecamatan_1);
+        map.addLayer(layer_AreaKecamatan_1);
+        function pop_AreaUrban_2(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (var i in e.target._eventParents) {
+                        if (typeof e.target._eventParents[i].resetStyle === 'function') {
+                            e.target._eventParents[i].resetStyle(e.target);
+                        }
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Kecamatan</th>\
+                        <td>' + (feature.properties['Kecamatan'] !== null ? autolinker.link(feature.properties['Kecamatan'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Jenis</th>\
+                        <td>' + (feature.properties['Jenis'] !== null ? autolinker.link(feature.properties['Jenis'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_AreaUrban_2_0() {
+            return {
+                pane: 'pane_AreaUrban_2',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(9,106,0,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_AreaUrban_2');
+        map.getPane('pane_AreaUrban_2').style.zIndex = 402;
+        map.getPane('pane_AreaUrban_2').style['mix-blend-mode'] = 'normal';
+        var layer_AreaUrban_2 = new L.geoJson(json_AreaUrban_2, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_AreaUrban_2',
+            layerName: 'layer_AreaUrban_2',
+            pane: 'pane_AreaUrban_2',
+            onEachFeature: pop_AreaUrban_2,
+            style: style_AreaUrban_2_0,
+        });
+        bounds_group.addLayer(layer_AreaUrban_2);
+        map.addLayer(layer_AreaUrban_2);
+        function pop_AreaRural_3(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (var i in e.target._eventParents) {
+                        if (typeof e.target._eventParents[i].resetStyle === 'function') {
+                            e.target._eventParents[i].resetStyle(e.target);
+                        }
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Kecamatan</th>\
+                        <td>' + (feature.properties['Kecamatan'] !== null ? autolinker.link(feature.properties['Kecamatan'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Jenis</th>\
+                        <td>' + (feature.properties['Jenis'] !== null ? autolinker.link(feature.properties['Jenis'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_AreaRural_3_0() {
+            return {
+                pane: 'pane_AreaRural_3',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(1,255,56,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_AreaRural_3');
+        map.getPane('pane_AreaRural_3').style.zIndex = 403;
+        map.getPane('pane_AreaRural_3').style['mix-blend-mode'] = 'normal';
+        var layer_AreaRural_3 = new L.geoJson(json_AreaRural_3, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_AreaRural_3',
+            layerName: 'layer_AreaRural_3',
+            pane: 'pane_AreaRural_3',
+            onEachFeature: pop_AreaRural_3,
+            style: style_AreaRural_3_0,
+        });
+        bounds_group.addLayer(layer_AreaRural_3);
+        map.addLayer(layer_AreaRural_3);
+        function pop_JalanArteri_4(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (var i in e.target._eventParents) {
+                        if (typeof e.target._eventParents[i].resetStyle === 'function') {
+                            e.target._eventParents[i].resetStyle(e.target);
+                        }
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['REMARK'] !== null ? autolinker.link(feature.properties['REMARK'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_JalanArteri_4_0() {
+            return {
+                pane: 'pane_JalanArteri_4',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'round',
+                lineJoin: 'round',
+                weight: 3.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+        }
+        function style_JalanArteri_4_1() {
+            return {
+                pane: 'pane_JalanArteri_4',
+                opacity: 1,
+                color: 'rgba(255,96,17,1.0)',
+                dashArray: '',
+                lineCap: 'round',
+                lineJoin: 'round',
+                weight: 2.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+        }
+        map.createPane('pane_JalanArteri_4');
+        map.getPane('pane_JalanArteri_4').style.zIndex = 404;
+        map.getPane('pane_JalanArteri_4').style['mix-blend-mode'] = 'normal';
+        var layer_JalanArteri_4 = new L.geoJson.multiStyle(json_JalanArteri_4, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_JalanArteri_4',
+            layerName: 'layer_JalanArteri_4',
+            pane: 'pane_JalanArteri_4',
+            onEachFeature: pop_JalanArteri_4,
+            styles: [style_JalanArteri_4_0,style_JalanArteri_4_1,]
+        });
+        bounds_group.addLayer(layer_JalanArteri_4);
+        map.addLayer(layer_JalanArteri_4);
+        function pop_PoinKecamatan_5(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (var i in e.target._eventParents) {
+                        if (typeof e.target._eventParents[i].resetStyle === 'function') {
+                            e.target._eventParents[i].resetStyle(e.target);
+                        }
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Kecamatan'] !== null ? autolinker.link(feature.properties['Kecamatan'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Luas Kecam</th>\
+                        <td>' + (feature.properties['Luas Kecam'] !== null ? autolinker.link(feature.properties['Luas Kecam'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Terbangun </th>\
+                        <td>' + (feature.properties['Terbangun '] !== null ? autolinker.link(feature.properties['Terbangun '].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Urban (Ha)</th>\
+                        <td>' + (feature.properties['Urban (Ha)'] !== null ? autolinker.link(feature.properties['Urban (Ha)'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Rural (Ha)</th>\
+                        <td>' + (feature.properties['Rural (Ha)'] !== null ? autolinker.link(feature.properties['Rural (Ha)'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Foto'] !== null ? '<img src="images/' + String(feature.properties['Foto']).replace(/[\\\/:]/g, '_').trim() + '">' : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_PoinKecamatan_5_0() {
+            return {
+                pane: 'pane_PoinKecamatan_5',
+                radius: 6.0,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,255,255,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_PoinKecamatan_5');
+        map.getPane('pane_PoinKecamatan_5').style.zIndex = 405;
+        map.getPane('pane_PoinKecamatan_5').style['mix-blend-mode'] = 'normal';
+        var layer_PoinKecamatan_5 = new L.geoJson(json_PoinKecamatan_5, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_PoinKecamatan_5',
+            layerName: 'layer_PoinKecamatan_5',
+            pane: 'pane_PoinKecamatan_5',
+            onEachFeature: pop_PoinKecamatan_5,
+            pointToLayer: function (feature, latlng) {
+                var context = {
+                    feature: feature,
+                    variables: {}
+                };
+                return L.circleMarker(latlng, style_PoinKecamatan_5_0(feature));
+            },
+        });
+        bounds_group.addLayer(layer_PoinKecamatan_5);
+        map.addLayer(layer_PoinKecamatan_5);
+        var baseMaps = {};
+        var overlaysTree = [
+            {label: '<img src="legend/PoinKecamatan_5.png" /> Poin Kecamatan', layer: layer_PoinKecamatan_5},
+            {label: '<img src="legend/JalanArteri_4.png" /> Jalan Arteri', layer: layer_JalanArteri_4},
+            {label: '<img src="legend/AreaRural_3.png" /> Area Rural', layer: layer_AreaRural_3},
+            {label: '<img src="legend/AreaUrban_2.png" /> Area Urban', layer: layer_AreaUrban_2},
+            {label: '<img src="legend/AreaKecamatan_1.png" /> Area Kecamatan', layer: layer_AreaKecamatan_1},
+            {label: "Google Satellite", layer: layer_GoogleSatellite_0},]
+        var lay = L.control.layers.tree(null, overlaysTree,{
+            //namedToggle: true,
+            //selectorBack: false,
+            //closedSymbol: '&#8862; &#x1f5c0;',
+            //openedSymbol: '&#8863; &#x1f5c1;',
+            //collapseAll: 'Collapse all',
+            //expandAll: 'Expand all',
+            collapsed: true,
+        });
+        lay.addTo(map);
+        setBounds();
+        </script>
+    </body>
+</html>
